@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twibbon Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .canvas-container {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans flex flex-col justify-between">
+
+  <!-- Header -->
+  <header class="bg-indigo-600 text-white shadow-md py-4 px-6 text-center">
+    <h1 class="text-2xl font-bold tracking-wide">Twibbon Generator</h1>
+    <p class="text-indigo-200 text-sm mt-1">Unggah foto Anda, sesuaikan posisi, dan unduh hasil Twibbon dengan mudah!</p>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+      
+      <!-- Left Column: Canvas Preview -->
+      <div class="flex flex-col items-center justify-center">
+        <div class="relative w-full max-w-[360px] aspect-square bg-slate-200 rounded-xl overflow-hidden shadow-inner flex items-center justify-center canvas-container border-2 border-slate-300">
+          <canvas id="twibbonCanvas" width="1080" height="1080" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+          <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/60 text-white flex flex-col items-center justify-center gap-2 hidden">
+            <i class="fa-solid font-bold text-2xl">⚡ Memuat Twibbon...</i>
+          </div>
+        </div>
+        <p class="text-xs text-slate-500 mt-2 text-center">
+          <i class="fa-solid fa-hand-pointer mr-1"></i> Klik & seret pada gambar untuk menggeser. Gunakan scroll untuk zoom.
+        </p>
+      </div>
+
+      <!-- Right Column: Controls -->
+      <div class="flex flex-col justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Kontrol Foto</h2>
+          
+          <!-- Upload Button Peserta -->
+          <div class="mb-4">
+            <label class="block text-sm font-semibold text-slate-700 mb-2">1. Pilih Foto Anda:</label>
+            <input type="file" id="userPhotoInput" accept="image/*" class="hidden">
+            <button onclick="document.getElementById('userPhotoInput').click()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-upload"></i> Unggah Foto Peserta
+            </button>
+          </div>
+
+          <!-- Controls (Zoom, Rotate) -->
+          <div id="editorControls" class="space-y-4 opacity-50 pointer-events-none transition-all duration-300">
+            <div>
+              <div class="flex justify-between text-sm font-medium text-slate-700 mb-1">
+                <span>Perbesar / Perkecil (Zoom):</span>
+                <span id="zoomVal">100%</span>
+              </div>
+              <input type="range" id="zoomRange" min="0.1" max="3" step="0.01" value="1" class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-sm font-medium text-slate-700 mb-1">
+                <span>Rotasi Foto:</span>
+                <span id="rotateVal">0°</span>
+              </div>
+              <input type="range" id="rotateRange" min="-180" max="180" step="1" value="0" class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+            </div>
+
+            <button id="resetBtn" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg transition duration-200 text-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-rotate-left"></i> Reset Posisi & Ukuran
+            </button>
+          </div>
+        </div>
+
+        <!-- Download Action -->
+        <div class="pt-4 border-t">
+          <button id="downloadBtn" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-lg">
+            <i class="fa-solid fa-download"></i> Unduh Hasil Twibbon
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t py-4 text-center text-slate-500 text-sm">
+    <p>&copy; Twibbon Generator. Bingkai Otomatis: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1791945521198.png</code></p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    const canvas = document.getElementById('twibbonCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const userPhotoInput = document.getElementById('userPhotoInput');
+    const zoomRange = document.getElementById('zoomRange');
+    const rotateRange = document.getElementById('rotateRange');
+    const zoomVal = document.getElementById('zoomVal');
+    const rotateVal = document.getElementById('rotateVal');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const editorControls = document.getElementById('editorControls');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    let frameImage = new Image();
+    let userImage = null;
+
+    // Transformasi foto peserta
+    let scale = 1;
+    let rotation = 0; // dalam derajat
+    let posX = 0;
+    let posY = 0;
+
+    // Mouse / Touch Dragging State
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+
+    // Path bingkai twibbon otomatis
+    const FRAME_SRC = '1791945521198.png';
+
+    // Inisialisasi awal
+    function init() {
+      loadingOverlay.classList.remove('hidden');
+      
+      frameImage.onload = () => {
+        loadingOverlay.classList.add('hidden');
+        draw();
+      };
+      
+      frameImage.onerror = () => {
+        loadingOverlay.classList.add('hidden');
+        alert('Gagal memuat file bingkai "' + FRAME_SRC + '". Pastikan file ada di folder yang sama dengan index.html.');
+        draw();
+      };
+
+      frameImage.src = FRAME_SRC;
+    }
+
+    // Fungsi Menggambar ke Canvas
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Gambar Foto Peserta (jika ada)
+      if (userImage) {
+        ctx.save();
+        ctx.translate(canvas.width / 2 + posX, canvas.height / 2 + posY);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.scale(scale, scale);
+        ctx.drawImage(
+          userImage,
+          -userImage.width / 2,
+          -userImage.height / 2
+        );
+        ctx.restore();
+      } else {
+        // Tampilan instruksi jika belum ada foto
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '36px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Silakan unggah foto Anda', canvas.width / 2, canvas.height / 2);
+      }
+
+      // 2. Gambar Bingkai Twibbon di atas Foto
+      if (frameImage.complete && frameImage.naturalWidth !== 0) {
+        ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    // Handle Upload Foto Peserta
+    userPhotoInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            userImage = img;
+            resetTransform();
+            editorControls.classList.remove('opacity-50', 'pointer-events-none');
+            downloadBtn.disabled = false;
+            draw();
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Reset Transformasi Foto
+    function resetTransform() {
+      if (!userImage) return;
+      // Hitung scale awal agar foto langsung menutupi canvas
+      const scaleX = canvas.width / userImage.width;
+      const scaleY = canvas.height / userImage.height;
+      scale = Math.max(scaleX, scaleY);
+      
+      rotation = 0;
+      posX = 0;
+      posY = 0;
+
+      zoomRange.value = scale;
+      rotateRange.value = 0;
+      updateUIValues();
+      draw();
+    }
+
+    function updateUIValues() {
+      zoomVal.textContent = Math.round(scale * 100) + '%';
+      rotateVal.textContent = rotation + '°';
+    }
+
+    // Listener Controls
+    zoomRange.addEventListener('input', (e) => {
+      scale = parseFloat(e.target.value);
+      updateUIValues();
+      draw();
+    });
+
+    rotateRange.addEventListener('input', (e) => {
+      rotation = parseInt(e.target.value);
+      updateUIValues();
+      draw();
+    });
+
+    resetBtn.addEventListener('click', resetTransform);
+
+    // Mouse & Touch Dragging Events
+    function getCanvasCoordinates(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
+      };
+    }
+
+    function startDrag(e) {
+      if (!userImage) return;
+      isDragging = true;
+      const coords = getCanvasCoordinates(e);
+      startX = coords.x - posX;
+      startY = coords.y - posY;
+    }
+
+    function drag(e) {
+      if (!isDragging || !userImage) return;
+      e.preventDefault();
+      const coords = getCanvasCoordinates(e);
+      posX = coords.x - startX;
+      posY = coords.y - startY;
+      draw();
+    }
+
+    function stopDrag() {
+      isDragging = false;
+    }
+
+    canvas.addEventListener('mousedown', startDrag);
+    canvas.addEventListener('mousemove', drag);
+    window.addEventListener('mouseup', stopDrag);
+
+    canvas.addEventListener('touchstart', startDrag);
+    canvas.addEventListener('touchmove', drag);
+    window.addEventListener('touchend', stopDrag);
+
+    // Zoom dengan Wheel Mouse
+    canvas.addEventListener('wheel', (e) => {
+      if (!userImage) return;
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 1.05 : 0.95;
+      scale = Math.min(Math.max(scale * zoomFactor, 0.1), 3);
+      zoomRange.value = scale;
+      updateUIValues();
+      draw();
+    });
+
+    // Handle Download Result
+    downloadBtn.addEventListener('click', () => {
+      if (!userImage) return;
+      
+      const link = document.createElement('a');
+      link.download = 'twibbon-hasil.png';
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+    });
+
+    // Jalankan aplikasi
+    init();
+  </script>
+</body>
+</html>
