@@ -24,11 +24,11 @@
   <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
     <div class="bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
       
-      <!-- Left Column: Canvas Preview -->
+      <!-- Left Column: Canvas Preview (Fixed 3:4 Aspect Ratio) -->
       <div class="flex flex-col items-center justify-center">
-        <!-- Wadah canvas fleksibel mengikuti ukuran asli bingkai -->
-        <div class="relative w-full max-w-[320px] aspect-square bg-slate-200 rounded-xl overflow-hidden shadow-inner flex items-center justify-center canvas-container border-2 border-slate-300" id="canvasWrapper">
-          <canvas id="twibbonCanvas" class="w-full h-full object-contain cursor-grab active:cursor-grabbing"></canvas>
+        <div class="relative w-full max-w-[270px] aspect-[3/4] bg-slate-200 rounded-xl overflow-hidden shadow-inner flex items-center justify-center canvas-container border-2 border-slate-300">
+          <!-- Resolusi canvas dikunci 1080x1440 px -->
+          <canvas id="twibbonCanvas" width="1080" height="1440" class="w-full h-full object-contain cursor-grab active:cursor-grabbing"></canvas>
           <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/60 text-white flex flex-col items-center justify-center gap-2 hidden">
             <i class="fa-solid font-bold text-xl">⚡ Memuat Bingkai...</i>
           </div>
@@ -89,14 +89,13 @@
 
   <!-- Footer -->
   <footer class="bg-white border-t py-4 text-center text-slate-500 text-sm">
-    <p>&copy; Twibbon Generator. Template Otomatis: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1791945521198.png</code></p>
+    <p>&copy; Twibbon Generator. Ukuran Template: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1080x1440 (3:4)</code> | File: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1791945521198.png</code></p>
   </footer>
 
   <!-- Application Logic -->
   <script>
     const canvas = document.getElementById('twibbonCanvas');
     const ctx = canvas.getContext('2d');
-    const canvasWrapper = document.getElementById('canvasWrapper');
 
     const userPhotoInput = document.getElementById('userPhotoInput');
     const zoomRange = document.getElementById('zoomRange');
@@ -130,33 +129,13 @@
       loadingOverlay.classList.remove('hidden');
       
       frameImage.onload = () => {
-        // Otomatis atur resolusi canvas sesuai ukuran asli file gambar bingkai (1791945521198.png)
-        canvas.width = frameImage.naturalWidth || 1080;
-        canvas.height = frameImage.naturalHeight || 1080;
-
-        // Sesuaikan aspek rasio kotak pratinjau di layar mengikuti bentuk asli bingkai
-        const aspectRatio = canvas.width / canvas.height;
-        if (aspectRatio < 1) {
-          canvasWrapper.style.aspectRatio = canvas.width + ' / ' + canvas.height;
-          canvasWrapper.style.maxWidth = '280px';
-        } else if (aspectRatio > 1) {
-          canvasWrapper.style.aspectRatio = canvas.width + ' / ' + canvas.height;
-          canvasWrapper.style.maxWidth = '360px';
-        } else {
-          canvasWrapper.style.aspectRatio = '1 / 1';
-          canvasWrapper.style.maxWidth = '320px';
-        }
-
         loadingOverlay.classList.add('hidden');
-        if (userImage) {
-          resetTransform();
-        }
         draw();
       };
       
       frameImage.onerror = () => {
         loadingOverlay.classList.add('hidden');
-        alert('Gagal memuat file bingkai "' + FRAME_SRC + '". Pastikan file gambar tersebut ada di folder yang sama dengan index.html.');
+        alert('Gagal memuat file bingkai "' + FRAME_SRC + '". Pastikan file gambar berukuran 1080x1440 px tersebut ada di folder yang sama dengan index.html.');
         draw();
       };
 
@@ -184,12 +163,12 @@
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = '#94a3b8';
-        ctx.font = Math.round(canvas.width / 30) + 'px sans-serif';
+        ctx.font = '36px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText('Silakan unggah foto Anda', canvas.width / 2, canvas.height / 2);
       }
 
-      // 2. Gambar Bingkai Twibbon Asli di atas Foto
+      // 2. Gambar Bingkai Twibbon (1080x1440) di atas Foto
       if (frameImage.complete && frameImage.naturalWidth !== 0) {
         ctx.drawImage(frameImage, 0, 0, canvas.width, canvas.height);
       }
