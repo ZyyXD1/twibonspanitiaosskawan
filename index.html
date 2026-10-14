@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Twibbon Generator</title>
+  <title>Twibbon OSIS SKAWAN 2026</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -12,74 +12,96 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 font-sans flex flex-col justify-between">
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans flex flex-col justify-between">
 
   <!-- Header -->
-  <header class="bg-indigo-600 text-white shadow-md py-4 px-6 text-center">
-    <h1 class="text-2xl font-bold tracking-wide">Twibbon Generator</h1>
-    <p class="text-indigo-200 text-sm mt-1">Unggah foto Anda, sesuaikan posisi, dan unduh hasil Twibbon dengan mudah!</p>
+  <header class="bg-white border-b border-slate-200 shadow-sm py-5 px-6 text-center sticky top-0 z-20">
+    <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-200">
+          <i class="fa-solid fa-camera-retro text-lg"></i>
+        </div>
+        <div class="text-left">
+          <h1 class="text-xl font-bold tracking-tight text-slate-900">Twibbon OSIS SKAWAN 2026</h1>
+          <p class="text-slate-500 text-xs">Format Portret Instagram (1080 x 1440 px)</p>
+        </div>
+      </div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 text-xs font-medium border border-violet-100">
+        <i class="fa-solid fa-lock text-[10px]"></i> Frame Dikunci
+      </div>
+    </div>
   </header>
 
   <!-- Main Content -->
-  <main class="container mx-auto px-4 py-8 flex-grow max-w-4xl">
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+  <main class="container mx-auto px-4 py-6 flex-grow max-w-4xl">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
       
-      <!-- Left Column: Canvas Preview (Fixed 3:4 Aspect Ratio) -->
-      <div class="flex flex-col items-center justify-center">
-        <div class="relative w-full max-w-[270px] aspect-[3/4] bg-slate-200 rounded-xl overflow-hidden shadow-inner flex items-center justify-center canvas-container border-2 border-slate-300">
-          <!-- Resolusi canvas dikunci 1080x1440 px -->
+      <!-- Left Column: Canvas Preview (Span 7) -->
+      <div class="md:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col items-center">
+        <div class="w-full flex items-center justify-between mb-3 pb-2 border-b border-slate-100 text-xs font-semibold text-slate-600">
+          <span class="flex items-center gap-1.5 text-violet-600">
+            <i class="fa-regular fa-eye"></i> Pratinjau Kanvas
+          </span>
+          <span class="text-slate-400 font-mono">1080 x 1440 px (3:4)</span>
+        </div>
+
+        <div class="relative w-full max-w-[280px] aspect-[3/4] bg-slate-100 rounded-xl overflow-hidden shadow-inner flex items-center justify-center canvas-container border border-slate-200">
           <canvas id="twibbonCanvas" width="1080" height="1440" class="w-full h-full object-contain cursor-grab active:cursor-grabbing"></canvas>
           <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/60 text-white flex flex-col items-center justify-center gap-2 hidden">
-            <i class="fa-solid font-bold text-xl">⚡ Memuat Bingkai...</i>
+            <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+            <span class="text-xs font-medium">Memuat Bingkai...</span>
           </div>
         </div>
-        <p class="text-xs text-slate-500 mt-2 text-center">
-          <i class="fa-solid fa-hand-pointer mr-1"></i> Klik & seret pada gambar untuk menggeser. Gunakan scroll untuk zoom.
+
+        <p class="text-[11px] text-slate-400 mt-3 text-center flex items-center gap-1">
+          <i class="fa-solid fa-hand-pointer text-violet-500"></i> Drag / sentuh langsung pada kanvas untuk menggeser foto
         </p>
       </div>
 
-      <!-- Right Column: Controls -->
-      <div class="flex flex-col justify-between gap-4">
+      <!-- Right Column: Controls (Span 5) -->
+      <div class="md:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between gap-5">
         <div>
-          <h2 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Kontrol Foto</h2>
+          <h2 class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wider border-b pb-2 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-violet-600"></i> Pengaturan Foto
+          </h2>
           
           <!-- Upload Button Peserta -->
           <div class="mb-4">
-            <label class="block text-sm font-semibold text-slate-700 mb-2">1. Pilih Foto Anda:</label>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Pilih Foto Peserta:</label>
             <input type="file" id="userPhotoInput" accept="image/*" class="hidden">
-            <button onclick="document.getElementById('userPhotoInput').click()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl shadow transition duration-200 flex items-center justify-center gap-2">
-              <i class="fa-solid fa-upload"></i> Unggah Foto Peserta
+            <button onclick="document.getElementById('userPhotoInput').click()" class="w-full bg-violet-600 hover:bg-violet-700 active:scale-[0.98] text-white font-medium py-2.5 px-4 rounded-xl shadow-sm shadow-violet-200 transition duration-200 flex items-center justify-center gap-2 text-sm">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Unggah Foto
             </button>
           </div>
 
           <!-- Controls (Zoom, Rotate) -->
-          <div id="editorControls" class="space-y-4 opacity-50 pointer-events-none transition-all duration-300">
+          <div id="editorControls" class="space-y-3 opacity-50 pointer-events-none transition-all duration-300">
             <div>
-              <div class="flex justify-between text-sm font-medium text-slate-700 mb-1">
-                <span>Perbesar / Perkecil (Zoom):</span>
-                <span id="zoomVal">100%</span>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Zoom Foto:</span>
+                <span id="zoomVal" class="font-mono text-violet-600">100%</span>
               </div>
-              <input type="range" id="zoomRange" min="0.1" max="3" step="0.01" value="1" class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+              <input type="range" id="zoomRange" min="0.1" max="3" step="0.01" value="1" class="w-full accent-violet-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
             </div>
 
             <div>
-              <div class="flex justify-between text-sm font-medium text-slate-700 mb-1">
-                <span>Rotasi Foto:</span>
-                <span id="rotateVal">0°</span>
+              <div class="flex justify-between text-xs font-medium text-slate-600 mb-1">
+                <span>Rotasi:</span>
+                <span id="rotateVal" class="font-mono text-violet-600">0°</span>
               </div>
-              <input type="range" id="rotateRange" min="-180" max="180" step="1" value="0" class="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer">
+              <input type="range" id="rotateRange" min="-180" max="180" step="1" value="0" class="w-full accent-violet-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
             </div>
 
-            <button id="resetBtn" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-2 px-4 rounded-lg transition duration-200 text-sm flex items-center justify-center gap-2">
-              <i class="fa-solid fa-rotate-left"></i> Reset Posisi & Ukuran
+            <button id="resetBtn" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-600 font-medium py-2 px-3 rounded-lg transition duration-200 text-xs flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-rotate-left"></i> Reset Posisi
             </button>
           </div>
         </div>
 
         <!-- Download Action -->
-        <div class="pt-4 border-t">
-          <button id="downloadBtn" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl shadow-lg transition duration-200 flex items-center justify-center gap-2 text-lg">
-            <i class="fa-solid fa-download"></i> Unduh Hasil Twibbon
+        <div class="pt-3 border-t border-slate-100">
+          <button id="downloadBtn" disabled class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl shadow-sm transition duration-200 flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-download"></i> Unduh Twibbon
           </button>
         </div>
 
@@ -88,8 +110,8 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-white border-t py-4 text-center text-slate-500 text-sm">
-    <p>&copy; Twibbon Generator. Ukuran Template: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1080x1440 (3:4)</code> | File: <code class="bg-slate-100 px-2 py-0.5 rounded text-indigo-600 font-mono">1791945521198.png</code></p>
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-slate-400 text-xs">
+    <p>&copy; 2026 OSIS SMK N 1 Wanayasa &bull; Template: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-violet-600 font-mono">1791945521198.png</code></p>
   </footer>
 
   <!-- Application Logic -->
@@ -121,7 +143,7 @@
     let startX = 0;
     let startY = 0;
 
-    // Path bingkai twibbon otomatis
+    // Nama file bingkai otomatis
     const FRAME_SRC = '1791945521198.png';
 
     // Inisialisasi awal
@@ -159,13 +181,19 @@
         );
         ctx.restore();
       } else {
-        // Tampilan instruksi jika belum ada foto
+        // Tampilan instruksi jika belum ada foto di dalam canvas
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '36px sans-serif';
+        
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 36px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Silakan unggah foto Anda', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Foto Belum Dipilih', canvas.width / 2, canvas.height / 2 - 20);
+        
+        ctx.font = '24px sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('Silakan unggah foto kamu di panel', canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText('samping untuk mulai.', canvas.width / 2, canvas.height / 2 + 70);
       }
 
       // 2. Gambar Bingkai Twibbon (1080x1440) di atas Foto
@@ -290,7 +318,7 @@
       if (!userImage) return;
       
       const link = document.createElement('a');
-      link.download = 'twibbon-hasil.png';
+      link.download = 'twibbon-osis-skawan.png';
       link.href = canvas.toDataURL('image/png', 1.0);
       link.click();
     });
